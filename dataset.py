@@ -1,83 +1,48 @@
-<<<<<<< HEAD
 import h5py
 import numpy as np
 from torch.utils.data import Dataset
-=======
-import torch
-import h5py
-import numpy as np
-from torch.utils.data import Dataset
-from nas_201_api import NASBench201API as API
->>>>>>> origin/main
 
 
 class NASBench101Dataset(Dataset):
     """
-<<<<<<< HEAD
     A PyTorch Dataset class for the NAS-Bench-101 dataset (benchmark).
-=======
-    A PyTorch Dataset class for the NAS-Bench-101 dataset.
->>>>>>> origin/main
     
     Args:
         hdf5_file (str): The path to the hdf5 file containing the preprocessed NAS-Bench-101 data.
         split (str, optional): The dataset split to use. Choices are 'train', 'test', or 'all'. Default is 'all'.
     """
 
-<<<<<<< HEAD
     # TODO: how we got these values?
-=======
->>>>>>> origin/main
     MEAN = 0.908192
     STD = 0.023961
 
     def __init__(self, hdf5_file, split="all"):
-<<<<<<< HEAD
         super().__init__()
         
         self.hash2id = dict()
         self.hdf5_file = hdf5_file
         self.seed = 0
-=======
-        super(NASBench101Dataset, self).__init__()
-
-        self.hdf5_file = hdf5_file
-        self.split = split
-        self.hash2id = dict()
->>>>>>> origin/main
         
         with h5py.File(self.hdf5_file, "r") as f:
             for i, h in enumerate(f["hash"][()]):
                 self.hash2id[h.decode()] = i
-<<<<<<< HEAD
-=======
-            self.hash = f["hash"][()]
->>>>>>> origin/main
             self.num_vertices = f["num_vertices"][()]
             self.trainable_parameters = f["trainable_parameters"][()]
             self.adjacency = f["adjacency"][()]
             self.operations = f["operations"][()]
             self.metrics = f["metrics"][()]
             
-<<<<<<< HEAD
             # TODO: review depth
-=======
->>>>>>> origin/main
             # Store depth for each architecture
             self.depth = np.zeros(len(self.hash2id), dtype=np.int32)
             for i, h in enumerate(f["hash"][()]):
                 self.hash2id[h.decode()] = i
-<<<<<<< HEAD
                 #self.depth[i] = self._network_depth(self.adjacency[i, :self.num_vertices[i], :self.num_vertices[i]])
-=======
-                self.depth[i] = self._network_depth(self.adjacency[i, :self.num_vertices[i], :self.num_vertices[i]])
->>>>>>> origin/main
 
         indices = np.arange(len(self.hash2id))
         np.random.seed(42)  # Set seed for reproducibility
         np.random.shuffle(indices)
 
-<<<<<<< HEAD
         if split != "all" and split != "train" and split != "test":
             self.indices = np.load("data/train.npz")[str(split)]
         elif split == "train":
@@ -86,36 +51,19 @@ class NASBench101Dataset(Dataset):
             self.indices = indices[int(0.8 * len(indices)):]
         else: # "all"
             self.indices = indices
-=======
-        if split in ["172", "334", "860"]:
-            self.indices = np.load("data/train.npz")[str(split)]
-        elif self.split == "train":
-            self.indices = indices[:int(0.8 * len(indices))]
-        elif self.split == "test":
-            self.indices = indices[int(0.8 * len(indices)):]
-        elif self.split == "all":
-            self.indices = indices
-        else:
-            raise ValueError("Invalid split type. Expected [172, 334, 860], 'train', 'test' or 'all', got {}".format(self.split))
->>>>>>> origin/main
 
     def __len__(self):
         return len(self.indices)
 
     def __getitem__(self, idx):
         """
-<<<<<<< HEAD
         Get an item (architecture) from the dataset by index.
-=======
-        Get an item from the dataset by index.
->>>>>>> origin/main
 
         Args:
             idx (int): Index of the item to retrieve.
 
         Returns:
             dict: A dictionary containing the following keys:
-<<<<<<< HEAD
                 - num_vertices (int): The number of vertices in the architecture.
                 - trainable_parameters (int): The number of trainable parameters in the architecture.
                 - adjacency (np.ndarray): The adjacency matrix of the architecture.
@@ -134,29 +82,10 @@ class NASBench101Dataset(Dataset):
         # Extract features and target
         val_acc, test_acc = self.metrics[index, -1, 0, -1, 2:] # seed 0
 
-=======
-                - trainable_parameters (int): Number of trainable parameters in the architecture.
-                - adjacency (numpy.ndarray): The adjacency matrix of the architecture.
-                - operations (numpy.ndarray): The one-hot encoded operations of the architecture.
-                - val_acc (float): The normalized validation accuracy.
-                - test_acc (float): The normalized test accuracy.
-                - depth (int): The depth of the architecture.
-        """
-        index = self.indices[idx]
-
-        # Extract features and target
-        num_vertices = self.num_vertices[index]
-        adjacency = self.adjacency[index], #self.adjacency[index, :num_vertices, :num_vertices]
-        ops_onehot = self._create_onehot_operations(self.operations[index])
-        val_acc, test_acc = self.metrics[index, -1, 0, -1, 2:] # seed 0
-        trainable_parameters = self.trainable_parameters[index]
-        
->>>>>>> origin/main
         if self._is_acc_blow(val_acc):
             val_acc = self.resample_acc(index, split="val")
         if self._is_acc_blow(test_acc):
             test_acc = self.resample_acc(index, split="test")
-<<<<<<< HEAD
         
         num_vertices = self.num_vertices[index] # <=7 (or just 7? to have same size for all)
         adjacency = self.adjacency[index], #self.adjacency[index, :num_vertices, :num_vertices]
@@ -297,26 +226,6 @@ class NASBench101Dataset(Dataset):
 #     return dic
 
     
-=======
-            
-        # Normalize val_acc and test_acc
-        val_acc = self.normalize(val_acc)
-        test_acc = self.normalize(test_acc)
-        
-        result = {
-            "num_vertices": num_vertices,
-            "trainable_parameters": trainable_parameters,
-            "adjacency": adjacency,
-            "operations": ops_onehot,
-            "mask": np.array([i < num_vertices for i in range(7)], dtype=np.float32),
-            "val_acc": val_acc,  # normalized
-            "test_acc": test_acc, # normalized
-            "depth": self.depth[index]
-        }
-
-        return result
-
->>>>>>> origin/main
     @staticmethod
     def normalize(value):
         """
@@ -373,10 +282,6 @@ class NASBench101Dataset(Dataset):
 
     def _is_acc_blow(self, acc):
         return acc < 0.2
-<<<<<<< HEAD
-=======
-    
->>>>>>> origin/main
 
     @staticmethod
     def _network_depth(adjacency_matrix):
@@ -422,10 +327,6 @@ class NASBench101Dataset(Dataset):
         #     "conv1x1-bn-relu": 1,
         #     "maxpool3x3": 2
         # }
-<<<<<<< HEAD
-=======
-        
->>>>>>> origin/main
         onehot_array = np.zeros((len(operations), num_operations), dtype=np.float32)
         for i, operation in enumerate(operations):
             operation_idx = operation + 2  # Add 2 to match the encoding
