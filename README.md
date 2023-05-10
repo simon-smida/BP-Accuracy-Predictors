@@ -6,8 +6,7 @@ This repository hosts the essential source code, datasets, and utility tools nee
 
 ![predictor](https://github.com/xsmida03/BP-Accuracy-Predictors/blob/main/imgs/predictor.png)
 
-## Project Details
-### Dataset - `NAS-Bench-101`
+## Search Space
 The chosen dataset for trained CNN architectures and their corresponding metrics is [NAS-Bench-101](https://github.com/google-research/nasbench), which consists of 423,624 architectures.
 
 To utilize the NAS-Bench-101 API, it is advised to clone the up-to-date (as of May 10, 2023) NAS-Bench-101 repository from [here](https://github.com/xsmida03/nasbench). In the scope of this project, the NAS-Bench-101 API is only required for converting the official `nasbench_full.tfrecord` file to a faster `hdf5` file format.
