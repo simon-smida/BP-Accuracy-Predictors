@@ -33,12 +33,8 @@ class NASBench101Dataset(Dataset):
             self.metrics = f["metrics"][()]
             self.depth = f["network_depth"][()]
             
-            # TODO: review depth
-            # Store depth for each architecture
-            self.depth = np.zeros(len(self.hash2id), dtype=np.int32)
             for i, h in enumerate(f["hash"][()]):
                 self.hash2id[h.decode()] = i
-                #self.depth[i] = self._network_depth(self.adjacency[i, :self.num_vertices[i], :self.num_vertices[i]])
 
         indices = np.arange(len(self.hash2id))
         np.random.seed(42)  # Set seed for reproducibility
@@ -99,14 +95,14 @@ class NASBench101Dataset(Dataset):
         
         result = {
             "num_vertices": num_vertices,
-            #"trainable_parameters": trainable_parameters,
+            "trainable_parameters": trainable_parameters,
             "adjacency": adjacency,
             "operations": ops_onehot, #TODO beware of this (we want this)
             #"operations": self.operations[index],
             "mask": mask,
             "val_acc": val_acc,#self.normalize(val_acc),   # normalized
             "test_acc": test_acc,#self.normalize(test_acc), # normalized
-            "depth": self.depth[index]
+            "depth": self.depth[index],
         }
 
         return result

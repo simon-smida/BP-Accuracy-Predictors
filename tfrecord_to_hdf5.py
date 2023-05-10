@@ -43,6 +43,28 @@ def calculate_depth(adjacency_matrix):
     
     return dfs(0) - 2  # Subtract 2 to exclude input and output nodes
 
+# TODO: check if this is correct/needed
+    # n = len(adjacency_matrix)
+    # depths = [0] * n
+
+    # def dfs(vertex):
+    #     if depths[vertex] != 0:
+    #         return depths[vertex]
+
+    #     max_depth = 0
+    #     for adjacent_vertex, connected in enumerate(adjacency_matrix[vertex]):
+    #         if connected:
+    #             max_depth = max(max_depth, dfs(adjacent_vertex))
+
+    #     depths[vertex] = max_depth + 1
+    #     return depths[vertex]
+
+    # max_depth = 0
+    # for i in range(1, n - 1):
+    #     max_depth = max(max_depth, dfs(i))
+
+    # return max_depth
+
 
 def pad_adjacency_and_operations(metadata, vertices_count):
     """Pad adjacency matrix and operations list with zeros up to the maximum number of vertices (7).
