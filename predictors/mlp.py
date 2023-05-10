@@ -71,31 +71,34 @@ class MLPPredictor(Predictor):
         }
         
     def save(self, file_path):
-        """Save the MLPPredictor model and hyperparameters to a file."""
-        state_dict = {
+        """Save the model and its parameters to the given file path."""
+        checkpoint = {
             "model_state_dict": self.model.state_dict(),
+            "mean": self.mean,
+            "std": self.std,
             "hyperparams": self.hyperparams,
         }
-        with open(file_path, "wb") as f:
-            pickle.dump(state_dict, f)
+        torch.save(checkpoint, file_path)
 
-    def load(self, file_path, input_dims):
-        """Load the MLPPredictor model and hyperparameters from a file."""
-        with open(file_path, "rb") as f:
-            state_dict = pickle.load(f)
+    def load(self, path):
+        """Load the model and parameters from a file."""
+        checkpoint = torch.load(path)
+        self.hyperparams = checkpoint["hyperparams"]
+        self.mean = checkpoint["mean"]
+        self.std = checkpoint["std"]
 
-        self.hyperparams = state_dict["hyperparams"]
-        # Reconstruct the model using the loaded hyperparameters
+        num_layers = checkpoint["hyperparams"]["num_layers"]
+        layer_width = checkpoint["hyperparams"]["layer_width"]
+        input_dims = checkpoint["model_state_dict"]["layers.0.weight"].shape[1]
+
         self.model = self.get_model(
             input_dims=input_dims,
-            num_layers=self.hyperparams["num_layers"],
-            layer_width=self.hyperparams["layer_width"],
-        ).to(device)
+            num_layers=num_layers,
+            layer_width=layer_width,
+        )
+        self.model.load_state_dict(checkpoint["model_state_dict"])
+        self.model.to(device)
 
-        # Load the model state_dict
-        self.model.load_state_dict(state_dict["model_state_dict"])
-
-        
     def get_model(self, **kwargs):
         """Get model"""
         return FeedforwardNet(**kwargs)

@@ -1,4 +1,7 @@
-# Ignore large files
+# Ignore models (for now)
+trained-models/*
+
+# Ignore large files 
 data/*
 
 # Byte-compiled / optimized / DLL files
