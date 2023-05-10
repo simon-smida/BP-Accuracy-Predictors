@@ -41,30 +41,8 @@ def calculate_depth(adjacency_matrix):
         depths[vertex] = max_depth + 1
         return depths[vertex]
     
-    return dfs(0) - 2  # Subtract 2 to exclude input and output nodes
-
-# TODO: check if this is correct/needed
-    # n = len(adjacency_matrix)
-    # depths = [0] * n
-
-    # def dfs(vertex):
-    #     if depths[vertex] != 0:
-    #         return depths[vertex]
-
-    #     max_depth = 0
-    #     for adjacent_vertex, connected in enumerate(adjacency_matrix[vertex]):
-    #         if connected:
-    #             max_depth = max(max_depth, dfs(adjacent_vertex))
-
-    #     depths[vertex] = max_depth + 1
-    #     return depths[vertex]
-
-    # max_depth = 0
-    # for i in range(1, n - 1):
-    #     max_depth = max(max_depth, dfs(i))
-
-    # return max_depth
-
+    # Start from the input node
+    return dfs(0) - 1 # Subtract 1 to account for connections instead of vertices
 
 def pad_adjacency_and_operations(metadata, vertices_count):
     """Pad adjacency matrix and operations list with zeros up to the maximum number of vertices (7).
@@ -97,7 +75,6 @@ def convert_metrics(metrics_data):
     Returns:
         converted_metrics_list -- list of numpy arrays representing the converted metrics.
     """
-
     converted_metrics_list = []
     epochs = [4, 12, 36, 108]
 
@@ -115,10 +92,10 @@ def convert_metrics(metrics_data):
 
     return converted_metrics_list
 
-# Main script
-def main():
-    nasbench = api.NASBench(NASBENCH_FULL_TFRECORD)
 
+def main():
+    # Load NASBench dataset
+    nasbench = api.NASBench(NASBENCH_FULL_TFRECORD)
     # Initialize lists to store data
     metrics = []
     operations = []

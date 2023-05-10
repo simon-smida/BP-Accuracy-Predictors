@@ -97,7 +97,7 @@ class NASBench101Dataset(Dataset):
             "num_vertices": num_vertices,
             "trainable_parameters": trainable_parameters,
             "adjacency": adjacency,
-            "operations": ops_onehot, #TODO beware of this (we want this)
+            "operations": ops_onehot,
             #"operations": self.operations[index],
             "mask": mask,
             "val_acc": val_acc,#self.normalize(val_acc),   # normalized
