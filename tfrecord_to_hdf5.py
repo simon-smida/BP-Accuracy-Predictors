@@ -64,6 +64,20 @@ def pad_adjacency_and_operations(metadata, vertices_count):
     operations_padded = np.zeros((7,), dtype=np.int8)
     operations_padded[:vertices_count] = operations
 
+    # print(metadata["module_operations"])    
+    # ['input', 'conv3x3-bn-relu', 'conv3x3-bn-relu', 'conv1x1-bn-relu', 'conv3x3-bn-relu', 'output']
+    # print(operations)
+    # [-1  0  0  1  0 -2]
+    # print(operations_padded)
+    # [-1  0  0  1  0 -2  0]
+    
+    # [[0. 1. 0. 0. 0.]
+    #  [0. 0. 1. 0. 0.]
+    #  [0. 0. 1. 0. 0.]
+    #  [0. 0. 0. 1. 0.]
+    #  [0. 0. 1. 0. 0.]
+    #  [1. 0. 0. 0. 0.]
+    #  [0. 0. 1. 0. 0.]]
     return adjacency_padded, operations_padded
 
 def convert_metrics(metrics_data):

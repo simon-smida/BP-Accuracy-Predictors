@@ -1,5 +1,7 @@
 import sys
 import numpy as np
+import seaborn as sns
+import pandas as pd
 import logging
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
@@ -12,6 +14,43 @@ from sklearn.model_selection import KFold
 
 # TODO: make me relative
 OVERLEAF_PATH = "C:/Users/simon/Desktop/VUT/bacalarka/overleaf/imgs"
+
+def show_correlation_matrix(data, 
+                            title="Correlation Matrix Heatmap", 
+                            text_out=False, plot_out=True, show=True, 
+                            save=False, save_path="imgs/correlation_matrix.png"):
+    """Visualize the correlation matrix of a Pandas DataFrame (text or plot output)
+
+    Arguments:
+        data -- Pandas DataFrame
+
+    Keyword Arguments:
+        title -- title of the plot (default: {"Correlation Matrix Heatmap"})
+        text_out -- print the correlation matrix (default: {False})
+        plot_out -- show the correlation matrix plot (default: {True})
+        show -- show the plot (default: {True})
+        save -- save the plot (default: {False})
+        save_path -- path to save the plot (default: {"correlation_matrix.png"})
+    """
+    # Calculate the correlation matrix
+    correlation_matrix = data.corr(method="pearson")
+
+    if text_out: # Print the correlation matrix
+        print(correlation_matrix)
+
+    # Create a heatmap of the correlation matrix
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", vmin=-1, vmax=1)
+
+    # Customize the plot (optional)
+    plt.title(title)
+    plt.xticks(rotation=45, ha='right')
+    
+    if save: # Save the plot
+        plt.savefig(save_path, bbox_inches='tight')
+    
+    if plot_out: # Show the plot
+        plt.show()
 
 
 def get_val_accs_weights(dataset):
