@@ -19,7 +19,7 @@ from predictors.predictor import Predictor
 from utils import AverageMeterGroup
 
 from dataset import NASBench101Dataset
-from utils import scatter_plot2, get_logger
+from utils import get_logger
 
 
 # TODO Import kendall tau
@@ -226,7 +226,10 @@ class GCNPredictor(Predictor):
                 loss = criterion(prediction.float(), target.float())
                 loss.backward()
                 optimizer.step()
-                mse = accuracy_mse(prediction, target)
+                
+                prediction_denorm = prediction * self.std + self.mean
+                target_denorm = target * self.std + self.mean
+                mse = accuracy_mse(prediction_denorm, target_denorm)
                 # Update the meters object
                 meters.update({"loss": loss.item(), "mse": mse.item()}, n=target.size(0))
             
@@ -273,6 +276,7 @@ class GCNPredictor(Predictor):
                 
                 # Update the meters object
                 loss = criterion(prediction.float(), target.float())
+                #prediction_denormalized = prediction * self.std + self.mean
                 mse = accuracy_mse(prediction, target)
                 meters.update({"loss": loss.item(), "mse": mse.item()}, n=target.size(0))
             

@@ -38,21 +38,15 @@ def get_targets2(dataset):
 ## NOTE: VERIFIED
 def get_flat_features(dataset):
     """Get flattened features (adjacency matrix + operations) for each architecture in the dataset."""
-    dataset_size = len(dataset)
-    adj_matrices = np.zeros((dataset_size, 7, 7))
-    ops = np.zeros((dataset_size, 7, 5))
-
-    for i in range(dataset_size):
-        arch = dataset[i]
-        adj_matrices[i] = arch["adjacency"][0]
-        ops[i] = arch["operations"]
-
-    # Flatten and concatenate using NumPy operations
-    adj_matrices_flat = adj_matrices.reshape(dataset_size, -1)
-    ops_flat = ops.reshape(dataset_size, -1)
-    features = np.concatenate((adj_matrices_flat, ops_flat), axis=1)
-
-    return features
+    features = []
+    for arch in dataset:
+        # Flatten and concatenate adjacency and operations arrays directly
+        f = np.concatenate((
+            arch["adjacency"][0].flatten(), 
+            arch["operations"].flatten())
+        )
+        features.append(f)
+    return np.array(features)
 
 # NOTE: slower than get_flat_features()
 def get_flat_features2(dataset):
@@ -76,38 +70,32 @@ def get_flat_features2(dataset):
         f = np.concatenate((adj_flat, ops_flat))
         yield f
 
-## NOTE: VERIFIED
 def get_flat_features_boosted(dataset):
     """Get flattened features (adjacency matrices, operations, trainable parameters, conv3x3 count) for each architecture in the dataset."""
-    dataset_size = len(dataset)
 
-    adj_matrices = np.zeros((dataset_size, 7, 7))
-    ops = np.zeros((dataset_size, 7, 5))
-    trainable_parameters = np.zeros(dataset_size)
-    conv3x3_count = np.zeros(dataset_size)
+    # Initialize arrays for trainable_parameters and conv3x3_count
+    trainable_parameters = np.array([arch["trainable_parameters"] for arch in dataset])
+    conv3x3_count = np.array([arch["conv3x3_count"] for arch in dataset])
 
-    for i in range(dataset_size):
-        arch = dataset[i]
-        adj_matrices[i] = arch["adjacency"][0]
-        ops[i] = arch["operations"]
-        trainable_parameters[i] = arch["trainable_parameters"]
-        conv3x3_count[i] = arch["conv3x3_count"]
-
-    # Scale trainable_parameters and conv3x3_count using StandardScaler
+    # Initialize StandardScaler and fit on entire datasets
     scaler = StandardScaler()
-    trainable_parameters_scaled = scaler.fit_transform(
-        trainable_parameters.reshape(-1, 1))
-    conv3x3_count_scaled = scaler.fit_transform(conv3x3_count.reshape(-1, 1))
+    trainable_parameters_scaled = scaler.fit_transform(trainable_parameters.reshape(-1, 1)).reshape(-1)
+    conv3x3_count_scaled = scaler.fit_transform(conv3x3_count.reshape(-1, 1)).reshape(-1)
 
-    # Flatten and concatenate using NumPy operations
-    adj_matrices_flat = adj_matrices.reshape(dataset_size, -1)
-    ops_flat = ops.reshape(dataset_size, -1)
-    features = np.concatenate(
-        (adj_matrices_flat, ops_flat, trainable_parameters_scaled, conv3x3_count_scaled), axis=1)
+    features = []
+    for i, arch in enumerate(dataset):
+        # Flatten and concatenate adjacency and operations arrays directly
+        f = np.concatenate((
+            arch["adjacency"][0].flatten(),
+            arch["operations"].flatten(),
+            [trainable_parameters_scaled[i]],
+            [conv3x3_count_scaled[i]]
+        ))
+        features.append(f)
 
-    return features
+    return np.array(features)
 
-## NOTE: VERIFIED
+## TODO: check using it
 ## TODO: check np.array(list())
 def get_gcn_features(dataset):
     """Get GCN features (adjacency matrix, operations, mask) for each architecture in the dataset."""
@@ -120,7 +108,7 @@ def get_gcn_features(dataset):
         gcn_f = {
             "num_vertices": arch["num_vertices"],
             "adjacency": arch["adjacency"][0],  # TODO: beware of this [0]
-            "operations": arch["operations_onehot"],
+            "operations": arch["operations"],
             "mask": arch["mask"],
             "val_acc": arch["val_acc"]
         }
@@ -167,7 +155,8 @@ def scatter_plot(
     # Create a scatter plot with gradient coloring based on the density estimate
     plt.scatter(y_true, y_pred, c=z, cmap=cmap,
                 s=s, edgecolors='face', alpha=a)
-    plt.xlabel(xlabel)    plt.ylabel(ylabel)
+    plt.xlabel(xlabel)    
+    plt.ylabel(ylabel)
 
     plt.plot([0, 100], [0, 100], 'r-', lw=0.5, label='y=x')
     plt.legend(loc='lower right')
@@ -183,13 +172,13 @@ def scatter_plot(
         plt.colorbar(label='Density')
 
     if save:
-        plt.savefig(filename)
+        plt.savefig(IMG_PATH + '/' + filename, dpi=300, bbox_inches='tight')
 
     plt.show()
     
 def scatter_plot_nice(
     y_true, y_pred, title,
-    b=0.05, cmap=None, s=4, a=0.75, top_lim=95,
+    b=0.05, cmap=None, s=4, a=0.75, top_lim=96,
     xlabel='Actual values [%]', ylabel='Predicted values [%]',
     save=False, filename='example.png', dense=False):
     """Scatter and zoomed-in scatter plot with optional density estimate.
@@ -204,7 +193,7 @@ def scatter_plot_nice(
         cmap -- colormap for the density estimate (default: {None})
         s -- size of the points (default: {4})
         a -- alpha value for the points (default: {0.75})
-        top_lim -- upper limit for the zoomed-in plot (default: {95})
+        top_lim -- upper limit for the zoomed-in plot (default: {96})
         xlabel -- label for the x-axis (default: {'Actual values [%]'})
         ylabel -- label for the y-axis (default: {'Predicted values [%]'})
         save -- save the plot to a file (default: {False})
@@ -234,16 +223,17 @@ def scatter_plot_nice(
     sc2 = ax2.scatter(y_true, y_pred, c=z, cmap=cmap, s=s, alpha=a)
     ax2.set_xlabel(xlabel)
     ax2.set_ylabel(ylabel)
-    ax2.set_xlim(90, 95)
-    ax2.set_ylim(90, 95)
+    ax2.set_xlim(90, top_lim)
+    ax2.set_ylim(90, top_lim)
     ax2.set_title('Zoomed in [90, ' + str(top_lim) + ']', fontsize=10)  
     ax2.plot([90, top_lim], [90, top_lim], color='red', linestyle='-', linewidth=0.5)
 
-    # Add colorbar to the second plot
-    plt.colorbar(sc2, ax=ax2, label='Point Density Estimate')
+    if dense:
+        # Add colorbar to the second plot
+        plt.colorbar(sc2, ax=ax2, label='Point Density Estimate')
 
-    ax1.grid(linewidth=0.25, alpha=0.6, color='lightgray')
-    ax2.grid(linewidth=0.25, alpha=0.6, color='lightgray')
+    ax1.grid(linewidth=0.5, alpha=0.8, color='lightgray', linestyle='--')
+    ax2.grid(linewidth=0.5, alpha=0.8, color='lightgray', linestyle='--')
 
     # Add legend for the red line y=x
     ax1.legend(handles=[line], loc='lower right')
@@ -252,7 +242,7 @@ def scatter_plot_nice(
     fig.suptitle(title, fontsize=16)
 
     if save:
-        plt.savefig(IMG_PATH + filename)
+        plt.savefig(IMG_PATH + '/' + filename, dpi=300, bbox_inches='tight')
 
     plt.show()
 

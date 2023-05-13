@@ -154,7 +154,7 @@ class MLPPredictor(Predictor):
                 optimizer.zero_grad()
                 _input = batch[0].to(device)
                 _target = batch[1].to(device)
-                _prediction = self.model(_input).view(-1) # TODO Why view(-1)?
+                _prediction = self.model(_input).view(-1) # TODO Why view(-1)? beca
                 
                 loss = criterion(_prediction, _target)
                 
@@ -168,12 +168,14 @@ class MLPPredictor(Predictor):
 
                 optimizer.step()
                 
-                mse = accuracy_mse(_prediction, _target)
+                _prediction_denorm = _prediction * self.std + self.mean
+                _target_denorm = _target * self.std + self.mean
+                mse = accuracy_mse(_prediction_denorm, _target_denorm)
                 
                 meters.update({"loss": loss.item(), "mse": mse.item()}, n=_target.size(0))
             
             # TODO: if verbose
-            logger.info(f"Epoch {epoch + 1}, Loss: {meters['loss'].avg:.4f}")  
+            logger.info(f"Epoch {epoch + 1}/{epochs}, Loss: {meters['loss'].avg:.4f}")  
             
         train_pred = np.squeeze(self.predict(xtrain))
         train_error = np.mean(np.abs(train_pred - ytrain))
