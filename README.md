@@ -30,6 +30,7 @@ To convert between the tfrecord and hdf5 file formats yourself, you can utilize 
 
 ## Example
 ```python
+import numpy as np
 from dataset import NASBench101Dataset
 from utils import get_targets, get_gcn_features 
 from predictors.gcn import GCNPredictor
