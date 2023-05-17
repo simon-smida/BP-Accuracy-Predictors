@@ -36,8 +36,8 @@ To convert between the tfrecord and hdf5 file formats yourself, you can utilize 
     - `correlation_analysis.ipynb`
     - `hyperparameter_tuning.ipynb`
 
-## Example training
-- `XGBPredictor` training (on 172 NAS-Bench-101 architectures) and applying to predict accuracies of the whole dataset
+## Example
+- `XGBPredictor` training (172 NAS-Bench-101 architectures) + applying to predict accuracies of the whole dataset
 ```python
 import numpy as np
 
