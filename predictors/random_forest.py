@@ -1,3 +1,12 @@
+# File: RFPredictor.py
+# Description:
+#   Definition of the RFPredictor class used for predicting performance in NAS problems using a Random Forest model.
+#   RFPredictor (inheriting from the Predictor class in predictor.py) provides functionality for 
+#   saving/loading model states, fitting the model, making predictions, and setting random hyperparameters.
+
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
+
 import os
 import pickle
 import numpy as np

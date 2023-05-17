@@ -4,6 +4,9 @@ trained-models/*
 # Ignore large files 
 data/*
 
+# Ignore imgs
+imgs/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

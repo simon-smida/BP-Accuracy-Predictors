@@ -1,6 +1,8 @@
-# Info: This script converts the NAS-Bench-101 dataset from TensorFlow Record (slow) format into HDF5 format (fast). 
-# It also precomputes and stores additional features like the depth of each network and 
-# the padded adjacency matrix and operations list.
+# File: tfrecord_to_hdf5.py
+# Description: 
+#   This script converts the NAS-Bench-101 dataset from TensorFlow Record (slow) format into HDF5 format (fast). 
+#   It also precomputes and stores additional features like the depth of each network and 
+#   the padded adjacency matrix and operations list.
 
 # Inspired by: NPNAS (https://github.com/ultmaster/neuralpredictor.pytorch)
 # License: MIT License

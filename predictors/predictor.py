@@ -1,3 +1,14 @@
+# File: predictor.py
+# Description:
+#   Definition of the generic Predictor class for use in NAS frameworks. 
+#   Provides the structure for creating, saving, loading, fitting, and evaluating predictors. 
+#   The class also supports setting and optimizing hyperparameters. It acts as a base class for 
+#   specific predictor implementations, allowing for flexibility and extensibility in NAS frameworks. 
+#   The predictor class is also capable of performing hyperparameter optimization using cross-validation and early stopping strategies.
+
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
+
 import time
 import copy
 import math

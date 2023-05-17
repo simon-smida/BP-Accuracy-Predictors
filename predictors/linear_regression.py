@@ -1,3 +1,9 @@
+# File: LRPredictor.py
+# Description:
+#     Definition of the LRPredictor class used for predicting accuracies in NAS problems.
+#     LRPredictor (inherits from the Predictor class in predictor.py) provides functionality for saving/loading model states,
+#     fitting the model, and making predictions using linear regression.
+
 import os
 import pickle
 import numpy as np

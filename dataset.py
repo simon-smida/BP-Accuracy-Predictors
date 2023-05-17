@@ -1,3 +1,11 @@
+# File: NASBench101Dataset.py
+# Description:
+#   Definition of the NASBench101Dataset class used for handling the NAS-Bench-101 dataset in PyTorch.
+#   The dataset provides architecture information and performance metrics for neural architectures.
+
+# Inspired by: NPNAS (https://github.com/ultmaster/neuralpredictor.pytorch)
+# License: MIT License
+
 import h5py
 import numpy as np
 from torch.utils.data import Dataset

@@ -1,5 +1,15 @@
+# File: utils.py
+# Description: 
+#   This Python script contains a variety of utility functions used for performance measurement,
+#   feature extraction, data visualization, cross-validation, logging, and metric computation.
+#   It is primarily used for analyzing and predicting the performance of models. 
+#   Functions in this script can measure training and query time of predictors, extract flat or
+#   Graph Convolutional Network (GCN) features from NAS datasets, visualize data with scatter plots, perform
+#   k-fold cross validation, log events, and compute performance metrics.
+
 import sys
 import logging
+import time
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -11,11 +21,42 @@ from sklearn.model_selection import KFold
 from sklearn.neighbors import KernelDensity
 from sklearn.preprocessing import StandardScaler
 
-
+# Constants
 IMG_PATH = "imgs"
 
+## ------------------- MEASURE PERFORMANCE -------------------
+def measure_training_time(predictor, train_features, train_targets, num_runs=3):
+    """Measure training time of a predictor - average of num_runs runs."""
+    times = []
+
+    for i in range(num_runs):
+        # Measure time
+        start = time.time()
+        # Fit predictor
+        predictor.fit(train_features, train_targets)
+        end = time.time()
+        times.append(end - start)
+
+    # Return the average time of num_runs runs
+    return np.mean(times)
+
+def measure_query_time(predictor, test_features, num_runs=3):
+    """Measure query time of a predictor - average of num_runs runs."""
+    times = []
+
+    for i in range(num_runs):
+        # Measure time
+        start = time.time()
+        # Query predictor
+        predictor.predict(test_features)
+        end = time.time()
+        times.append(end - start)
+
+    # Return the average time of num_runs runs
+    return np.mean(times)
+
+
 ## ------------------- FEATURE EXTRACTION -------------------
-## NOTE: VERIFIED
 def get_targets(dataset):
     """Get targets (validation accuracy) for each architecture in the dataset."""
     dataset_size = len(dataset)
@@ -35,7 +76,6 @@ def get_targets2(dataset):
         sample = dataset[i]
         yield sample['val_acc']
 
-## NOTE: VERIFIED
 def get_flat_features(dataset):
     """Get flattened features (adjacency matrix + operations) for each architecture in the dataset."""
     features = []
@@ -95,8 +135,6 @@ def get_flat_features_boosted(dataset):
 
     return np.array(features)
 
-## TODO: check using it
-## TODO: check np.array(list())
 def get_gcn_features(dataset):
     """Get GCN features (adjacency matrix, operations, mask) for each architecture in the dataset."""
     dataset_size = len(dataset)
@@ -107,7 +145,7 @@ def get_gcn_features(dataset):
 
         gcn_f = {
             "num_vertices": arch["num_vertices"],
-            "adjacency": arch["adjacency"][0],  # TODO: beware of this [0]
+            "adjacency": arch["adjacency"][0],
             "operations": arch["operations"],
             "mask": arch["mask"],
             "val_acc": arch["val_acc"]
@@ -118,7 +156,6 @@ def get_gcn_features(dataset):
     return gcn_features
 
 ## --------------------- VISUALIZATION ---------------------
-## NOTE: VERIFIED
 def scatter_plot(
     y_true, y_pred, title,
     b=0.05, cmap=None, s=4, a=0.75,
@@ -179,7 +216,7 @@ def scatter_plot(
 def scatter_plot_nice(
     y_true, y_pred, title,
     b=0.05, cmap=None, s=4, a=0.75, top_lim=96,
-    xlabel='Actual values [%]', ylabel='Predicted values [%]',
+    xlabel='Validation accuracy [%]', ylabel='Predictions [%]',
     save=False, filename='example.png', dense=False):
     """Scatter and zoomed-in scatter plot with optional density estimate.
 
@@ -246,7 +283,6 @@ def scatter_plot_nice(
 
     plt.show()
 
-## NOTE: VERIFIED
 def plot_linear_regression(show=True, save=False, filename='linear_reg.pdf'):
     """Plot a linear regression model fitted to a synthetic dataset.
 
@@ -297,7 +333,6 @@ def plot_linear_regression(show=True, save=False, filename='linear_reg.pdf'):
     if show:
         plt.show()
 
-## NOTE: VERIFIED
 def plot_relu(show=True, save=False, filename='relu.pdf'):
     """Plot the ReLU activation function.
 
@@ -334,7 +369,6 @@ def plot_relu(show=True, save=False, filename='relu.pdf'):
     if show:
         plt.show()
 
-## NOTE: VERIFIED
 def show_correlation_matrix(data, title="Correlation Matrix Heatmap",
                             text_out=False, plot_out=True, show=True,
                             save=False, filename="correlation_matrix.png"):
@@ -373,8 +407,8 @@ def show_correlation_matrix(data, title="Correlation Matrix Heatmap",
         plt.show()
 
 ## -------------------- CROSS VALIDATION --------------------
-## NOTE: VERIFIED
-## TODO: source?
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
 def cross_validation(xtrain, ytrain, predictor, k=3, score_metric="kendalltau"):
     """Cross validation for a accuracy predictors
 
@@ -426,8 +460,8 @@ def cross_validation(xtrain, ytrain, predictor, k=3, score_metric="kendalltau"):
     return np.mean(validation_score)
 
 ## ------------------------- LOGGING -------------------------
-## NOTE: VERIFIED
-## TODO: check how used + add source
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
 def get_logger():
     """Get logger for the current module
 
@@ -449,8 +483,8 @@ def get_logger():
     return logger
 
 ## ------------------------- METRICS -------------------------
-## NOTE: VERIFIED
-## TODO: check how used + add source
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
 class NamedAverageMeter:
     """Computes and stores the average and current value, ported from naszilla repo"""
 
@@ -491,8 +525,8 @@ class NamedAverageMeter:
         fmtstr = "{name}: {avg" + self.fmt + "}"
         return fmtstr.format(**self.__dict__)
 
-## NOTE: VERIFIED
-## TODO: check how used + add source
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
 class AverageMeterGroup:
     """Average meter group for multiple average meters, ported from Naszilla repo."""
 

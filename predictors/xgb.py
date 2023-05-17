@@ -1,3 +1,12 @@
+# File: XGBPredictor.py
+# Description:
+#   Definition of the XGBPredictor class used for predicting performance in NAS problems using XGBoost.
+#   XGBPredictor (inherits from the Predictor class in predictor.py) and handles tasks such as
+#   saving/loading model states, fitting the model, making predictions, and setting hyperparameters.
+
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
+
 import os
 import pickle
 import numpy as np

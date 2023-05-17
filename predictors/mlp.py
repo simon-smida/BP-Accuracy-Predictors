@@ -1,3 +1,14 @@
+# File: MLPPredictor.py
+# Description:
+#   Definition of the MLPPredictor and FeedforwardNet classes used for predicting performance in NAS problems. 
+#   MLPPredictor  (inherits from the Predictor class in predictor.py), handles tasks like 
+#   saving/loading model states, fitting the model, and making predictions. 
+#   FeedforwardNet represents a fully connected neural network with customizable layers and widths. 
+#   A utility function, accuracy_mse, is also provided for calculating the mean squared error. 
+
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
+
 import os 
 import pickle 
 import numpy as np
@@ -15,6 +26,7 @@ from predictors.predictor import Predictor
 device = torch.device("cpu")
 
 def accuracy_mse(prediction, target, scale=100.0):
+    """Computes the MSE between the prediction and the target"""
     prediction = prediction.detach() * scale
     target = (target) * scale
     return F.mse_loss(prediction, target)
@@ -34,12 +46,13 @@ class FeedforwardNet(nn.Module):
         
         all_units = [input_dims] + layer_width
         
+        # Create layers
         self.layers = nn.ModuleList(
             [nn.Linear(all_units[i], all_units[i+1]) for i in range(num_layers)]
         )
-        
         self.out = nn.Linear(all_units[-1], output_dims)
         
+        # Initialize weights and biases (Xavier initialization)
         for layer in self.layers:
             torch.nn.init.xavier_uniform_(layer.weight)
             torch.nn.init.zeros_(layer.bias)
@@ -83,10 +96,13 @@ class MLPPredictor(Predictor):
     def load(self, path):
         """Load the model and parameters from a file."""
         checkpoint = torch.load(path)
+        
+        # Load hyperparams
         self.hyperparams = checkpoint["hyperparams"]
         self.mean = checkpoint["mean"]
         self.std = checkpoint["std"]
 
+        # Load model
         num_layers = checkpoint["hyperparams"]["num_layers"]
         layer_width = checkpoint["hyperparams"]["layer_width"]
         input_dims = checkpoint["model_state_dict"]["layers.0.weight"].shape[1]
@@ -96,6 +112,7 @@ class MLPPredictor(Predictor):
             num_layers=num_layers,
             layer_width=layer_width,
         )
+        
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.model.to(device)
 
@@ -125,36 +142,40 @@ class MLPPredictor(Predictor):
         
         _ytrain = np.array(ytrain)
         
+        # Create data loader
         train_data = TensorDataset(
             torch.FloatTensor(_xtrain).to(device),
             torch.FloatTensor(_ytrain).to(device),
         )
-        
         data_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
         
-        # TODO
+        # Create model 
         self.model = self.get_model(
             input_dims=_xtrain.shape[1],
             num_layers=num_layers,
             layer_width=layer_width,
         ).to(device)
         
+        # Create optimizer
         optimizer = optim.Adam(self.model.parameters(), lr=lr, betas=(0.9, 0.99))
         
+        # Create loss function 
         criterion = nn.MSELoss().to(device)
         
         # Logging setup
         logger = get_logger()
         
+        # Set model to train mode
         self.model.train()
         
+        # Start training 
         for epoch in range(epochs):
             meters = AverageMeterGroup()
             for i, batch in enumerate(data_loader):
                 optimizer.zero_grad()
                 _input = batch[0].to(device)
                 _target = batch[1].to(device)
-                _prediction = self.model(_input).view(-1) # TODO Why view(-1)? beca
+                _prediction = self.model(_input).view(-1)
                 
                 loss = criterion(_prediction, _target)
                 
@@ -174,7 +195,6 @@ class MLPPredictor(Predictor):
                 
                 meters.update({"loss": loss.item(), "mse": mse.item()}, n=_target.size(0))
             
-            # TODO: if verbose
             logger.info(f"Epoch {epoch + 1}/{epochs}, Loss: {meters['loss'].avg:.4f}")  
             
         train_pred = np.squeeze(self.predict(xtrain))
@@ -184,15 +204,9 @@ class MLPPredictor(Predictor):
     
     
     def predict(self, xtest):
-        """Predict the test set"""
+        """Predict the target values for the given test data."""
         test_data = TensorDataset(torch.FloatTensor(xtest).to(device), torch.zeros(len(xtest)).to(device))
-        eval_batch_size = len(xtest) # TODO Why? isnt it too much?
-        
-        # determines the number of test samples that are processed at once when 
-        # making predictions. In the current implementation, the entire test set is 
-        # processed in one batch because eval_batch_size is set to the length of xtest. 
-        # This approach is fine for small test sets, but for larger test sets, you may want to 
-        # process the test samples in smaller batches to avoid memory issues. 
+        eval_batch_size = len(xtest)
         
         test_data_loader = DataLoader(test_data, batch_size=eval_batch_size, shuffle=False)
 
@@ -205,7 +219,7 @@ class MLPPredictor(Predictor):
                 predictions.append(_prediction.cpu().numpy())
 
         predictions = np.concatenate(predictions)
-        return predictions * self.std + self.mean # TODO: beware added
+        return predictions * self.std + self.mean # Denormalize predictions
 
     def set_random_hyperparams(self):
         """Set random hyperparameters"""

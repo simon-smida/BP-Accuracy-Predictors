@@ -1,4 +1,15 @@
-# Author: Yang Liu @ Abacus.ai
+# File: gcn_predictor.py
+# Description:
+#   This file implements the GCNPredictor class, which is used for predicting 
+#   the performance of architectures in NAS problems using Graph Convolutional Networks (GCNs). 
+#   The GCNPredictor (inherits from the Predictor class defined in predictor.py) provides functionality 
+#   for saving/loading model states, fitting the model, and making predictions.
+#
+#   The GCNPredictor uses the NASBench101Dataset class from the dataset module (dataset.py) and 
+#   the AverageMeterGroup class from the utils module (utils.py).
+
+# Inspired by: NASLib (https://github.com/automl/NASLib)
+# License: Apache License 2.0
 # This is an implementation of gcn predictor for NAS from the paper:
 # Wen et al., 2019. Neural Predictor for Neural Architecture Search
 
@@ -22,26 +33,25 @@ from dataset import NASBench101Dataset
 from utils import get_logger
 
 
-# TODO Import kendall tau
-from scipy.stats import kendalltau
-
+# Device configuration
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def normalize_adj(adj):
-    # Row-normalize matrix
+    """Symmetrically normalize adjacency matrix."""
     last_dim = adj.size(-1)
     rowsum = adj.sum(2, keepdim=True).repeat(1, 1, last_dim)
     return torch.div(adj, rowsum)
 
 
 def graph_pooling(inputs, num_vertices):
+    """Pool the node features of a graph by averaging over all nodes."""
     out = inputs.sum(1)
     return torch.div(out, num_vertices.unsqueeze(-1).expand_as(out))
 
 
-# TODO: use this? scaling needed?
 def accuracy_mse(prediction, target, scale=100.0):
+    """Computes the MSE between the prediction and the target"""
     prediction = prediction.detach() * scale
     target = (target) * scale
     return F.mse_loss(prediction, target)
@@ -158,10 +168,11 @@ class GCNPredictor(Predictor):
     def load(self, path):
         """Load the model and parameters from a file."""
         checkpoint = torch.load(path)
+        # Load the model parameters from checkpoint
         self.hyperparams = checkpoint["hyperparams"]
         self.mean = checkpoint["mean"]
         self.std = checkpoint["std"]
-
+        # Load the model
         gcn_hidden = checkpoint["hyperparams"]["gcn_hidden"]  # Get gcn_hidden from the checkpoint
         self.model = NeuralPredictorModel(gcn_hidden=gcn_hidden)
         self.model.load_state_dict(checkpoint["model_state_dict"])
@@ -169,23 +180,18 @@ class GCNPredictor(Predictor):
         
 
     def fit(self, xtrain, ytrain):
-        """Train the model on the given data"""
-
-        # TODO: reset_seed(0)
-        
+        """Train the model on the given data"""        
         if self.hyperparams is None:
             self.hyperparams = self.default_hyperparams.copy()
 
         # Set hyperparameters
         gcn_hidden = self.hyperparams["gcn_hidden"]
         batch_size = self.hyperparams["batch_size"]
-
         lr = self.hyperparams["lr"]
         wd = self.hyperparams["wd"]
-        
         epochs = self.hyperparams["epochs"]
 
-        # TODO: this below into NASBENCH?
+        # Normalize the target values
         self.mean = np.mean(ytrain)
         self.std = np.std(ytrain)
         ytrain_normed = (ytrain - self.mean) / self.std
@@ -211,13 +217,14 @@ class GCNPredictor(Predictor):
         # xtrain (train_data) is a list of dicts
         data_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, drop_last=True)
         
-        meters = AverageMeterGroup()  # Initialize AverageMeterGroup
+        # Initialize AverageMeterGroup
+        meters = AverageMeterGroup()    
         
         # Set model to training mode
         self.model.train()
 
+        # Start training
         for epoch in range(epochs):
-            #meters = AverageMeterGroup()
             lr = optimizer.param_groups[0]["lr"]
             for _, batch in enumerate(data_loader):
                 target = batch["val_acc"].to(device)
@@ -236,9 +243,7 @@ class GCNPredictor(Predictor):
             logger.info(f"Epoch {epoch + 1}/{epochs}, Loss: {meters['loss'].avg:.4f}, MSE: {meters['mse'].avg:.4f}")
 
             lr_scheduler.step()
-    
-        print(meters)
-        
+            
         train_pred = np.squeeze(self.predict(xtrain))
         train_error = np.mean(abs(train_pred - ytrain))
         
@@ -276,21 +281,18 @@ class GCNPredictor(Predictor):
                 
                 # Update the meters object
                 loss = criterion(prediction.float(), target.float())
-                #prediction_denormalized = prediction * self.std + self.mean
-                mse = accuracy_mse(prediction, target)
+                _prediction_denormalized = prediction * self.std + self.mean
+                _target_denormalized = target * self.std + self.mean
+                mse = accuracy_mse(_prediction_denormalized, _target_denormalized)
                 meters.update({"loss": loss.item(), "mse": mse.item()}, n=target.size(0))
             
-                logger.info(f"Batch {i + 1}, Loss: {meters['loss'].avg:.4f}, MSE: {meters['mse'].avg:.4f}")
+                #logger.info(f"Batch {i + 1}, Loss: {meters['loss'].avg:.4f}, MSE: {meters['mse'].avg:.4f}")
 
         predict_ = np.concatenate(predict_)
         target_ = np.concatenate(target_)
-        #print("Kendall's tau: ", kendalltau(predict_, target_)[0])
         
-        print(meters)
-        
-        # TODO: beware
-        # Model predicts the performance metrics in the normalized form 
-        # # since it was trained on normalized target values
+        # NOTE: Model predicts the performance metrics in the normalized form
+        # since it was trained on normalized target values
         return predict_ * self.std + self.mean # predictions are denormalized
 
     def set_random_hyperparams(self):

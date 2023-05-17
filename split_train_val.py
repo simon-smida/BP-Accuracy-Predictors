@@ -1,6 +1,8 @@
-# Info: This script loads the NAS-Bench-101 dataset, generates various splits of the data,
-# and removes architectures with validation accuracy less than a certain threshold. The
-# results are then saved for future use in Neural Architecture Search experiments.
+# File: split_train_val.py
+# Description: 
+#   This script loads the NAS-Bench-101 dataset, generates various splits of the data,
+#   and removes architectures with validation accuracy less than a certain threshold. The
+#   results are then saved for future use in Neural Architecture Search experiments.
 
 # Inspired by: NPNAS (https://github.com/ultmaster/neuralpredictor.pytorch)
 # License: MIT License
