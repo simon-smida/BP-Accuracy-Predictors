@@ -31,7 +31,10 @@ To convert between the tfrecord and hdf5 file formats yourself, you can utilize 
     - `source ./venv/bin/activate` (Linux)
 6. Make sure you have installed necessary dependencies (above)
 7. Install necessary packages: `pip install -r requirements.txt`
-8. Recommended: review the jupyter notebooks (`analysis.ipynb`, `correlation_analysis.ipynb`, `hyperparameter_tuning.ipynb`)
+8. Recommended: review the jupyter notebooks:
+    - `analysis.ipynb`
+    - `correlation_analysis.ipynb`
+    - `hyperparameter_tuning.ipynb`)
 
 ## Example training
 - `XGBPredictor` training (on 172 NAS-Bench-101 architectures) and applying to predict accuracies of the whole dataset
