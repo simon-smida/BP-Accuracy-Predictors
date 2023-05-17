@@ -1,3 +1,10 @@
+# Info: This script converts the NAS-Bench-101 dataset from TensorFlow Record (slow) format into HDF5 format (fast). 
+# It also precomputes and stores additional features like the depth of each network and 
+# the padded adjacency matrix and operations list.
+
+# Inspired by: NPNAS (https://github.com/ultmaster/neuralpredictor.pytorch)
+# License: MIT License
+
 import h5py
 import numpy as np
 from nasbench import api
@@ -8,6 +15,7 @@ from collections import deque
 NASBENCH_FULL_TFRECORD = "data/nasbench_full.tfrecord"
 NASBENCH_HDF5 = "data/nasbench101.hdf5"
 
+# Mapping operation labels to unique ids
 LABEL2ID = {
     "input": -1,
     "output": -2,
@@ -19,6 +27,7 @@ LABEL2ID = {
 
 def calculate_depth(adjacency_matrix):
     """Calculate the depth of a given adjacency matrix.
+    depth ~ longest path in the network from input to output node
 
     Arguments:
         adjacency_matrix -- numpy array representing the adjacency matrix of the network.
@@ -64,20 +73,22 @@ def pad_adjacency_and_operations(metadata, vertices_count):
     operations_padded = np.zeros((7,), dtype=np.int8)
     operations_padded[:vertices_count] = operations
 
-    # print(metadata["module_operations"])    
-    # ['input', 'conv3x3-bn-relu', 'conv3x3-bn-relu', 'conv1x1-bn-relu', 'conv3x3-bn-relu', 'output']
-    # print(operations)
-    # [-1  0  0  1  0 -2]
-    # print(operations_padded)
-    # [-1  0  0  1  0 -2  0]
+    # Content of metadata["module_operations"]:
+    #   -> ['input', 'conv3x3-bn-relu', 'conv3x3-bn-relu', 'conv1x1-bn-relu', 'conv3x3-bn-relu', 'output']
+    # Content of operations:
+    #   -> [-1  0  0  1  0 -2]
+    # Content of operations_padded:
+    #   -> [-1  0  0  1  0 -2  0]
     
-    # [[0. 1. 0. 0. 0.]
-    #  [0. 0. 1. 0. 0.]
-    #  [0. 0. 1. 0. 0.]
-    #  [0. 0. 0. 1. 0.]
-    #  [0. 0. 1. 0. 0.]
-    #  [1. 0. 0. 0. 0.]
-    #  [0. 0. 1. 0. 0.]]
+    # Operations one-hot encoding (in dataset.py):
+    #   [[0. 1. 0. 0. 0.]
+    #    [0. 0. 1. 0. 0.]
+    #    [0. 0. 1. 0. 0.]
+    #    [0. 0. 0. 1. 0.]
+    #    [0. 0. 1. 0. 0.]
+    #    [1. 0. 0. 0. 0.]
+    #    [0. 0. 1. 0. 0.]]
+    
     return adjacency_padded, operations_padded
 
 def convert_metrics(metrics_data):
@@ -90,7 +101,7 @@ def convert_metrics(metrics_data):
         converted_metrics_list -- list of numpy arrays representing the converted metrics.
     """
     converted_metrics_list = []
-    epochs = [4, 12, 36, 108]
+    epochs = [4, 12, 36, 108] # as in NAS-Bench-101 paper
 
     for epoch in epochs:
         converted_metrics = []
