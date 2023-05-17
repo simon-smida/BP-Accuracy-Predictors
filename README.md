@@ -27,8 +27,8 @@ To convert between the tfrecord and hdf5 file formats yourself, you can utilize 
 2. Go to the main directory: `cd BP-Accuracy-Predictors`
 3. Create virtual environment: `virtualenv venv`
 4. Activate the environment: 
-  - `./venv/Scripts/activate` (Windows)
-  - `source ./venv/bin/activate` (Linux)
+    - `./venv/Scripts/activate` (Windows)
+    - `source ./venv/bin/activate` (Linux)
 6. Make sure you have installed necessary dependencies (above)
 7. Install necessary packages: `pip install -r requirements.txt`
 8. Recommended: review the jupyter notebooks (`analysis.ipynb`, `correlation_analysis.ipynb`, `hyperparameter_tuning.ipynb`)
