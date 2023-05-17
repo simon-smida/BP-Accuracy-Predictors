@@ -2,7 +2,7 @@
 trained-models/*
 
 # Ignore large files 
-data/*
+#data/*
 
 # Ignore imgs
 imgs/*
