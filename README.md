@@ -28,29 +28,34 @@ To convert between the tfrecord and hdf5 file formats yourself, you can utilize 
 4. Install necessary packages: `pip install -r requirements.txt`
 5. Recommended: review or run jupyter notebook (`analysis.ipynb`, `correlation_analysis.ipynb`, `hyperparameter_tuning.ipynb`)
 
-## Example
+## Example training
+- `XGBPredictor` training (on 172 NAS-Bench-101 architectures) and applying to predict accuracies of the whole dataset
 ```python
 import numpy as np
+
 from dataset import NASBench101Dataset
-from utils import get_targets, get_gcn_features 
-from predictors.gcn import GCNPredictor
+from utils import get_targets, get_flat_features
+from predictors.xgb import XGBPredictor
 
 # Load NAS-Bench-101 dataset (172 training samples)
 dataset = NASBench101Dataset('data/nasbench101.hdf5', "172") 
 dataset_all = NASBench101Dataset('data/nasbench101.hdf5', "all")
 
 # Get the features
-features_gcn = np.array(list([a for a in dataset]))
-all_features_gcn = np.array(list([a for a in dataset_all]))
-train_targets = get_targets(dataset)
+features_train = get_flat_features(dataset)
+features_all = get_flat_features(dataset_all)
+targets_train = get_targets(dataset)
 
-# GCN predictor
-gcn_predictor = GCNPredictor()
+# XGB-based predictor
+xgb_predictor = XGBPredictor()
+
 # Training
-gcn_predictor.fit(features_gcn, train_targets)
+xgb_predictor.fit(features_train, targets_train)
+
 # Prediction
-gcn_predictor.predict(all_features_gcn)
+xgb_predictor.predict(features_all)
 ```
+![xgboost](https://github.com/xsmida03/BP-Accuracy-Predictors/blob/main/imgs/xgb_predictor100k.png)
 
 ## Awards
 **[Excel@fit](https://excel.fit.vutbr.cz/)**: Awarded by an [expert panel](https://excel.fit.vutbr.cz/vysledky/#oceneni-odbornym-panelem) (see [paper](https://excel.fit.vutbr.cz/submissions/2023/082/82.pdf) and [poster](https://excel.fit.vutbr.cz/submissions/2023/082/82_poster.pdf) for more information)
