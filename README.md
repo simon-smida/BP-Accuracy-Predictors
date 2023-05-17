@@ -18,15 +18,20 @@ To convert between the tfrecord and hdf5 file formats yourself, you can utilize 
 ## Dependencies
 - `PyTorch` - follow [official guide](https://pytorch.org/get-started/locally/) according to your system
   - not included in `requirements.txt`
+  - cuda recommended
 - `NAS-Bench-101` - only if you want to run `tfrecord_to_hdf5.py` (convert `tfrecord` to `hdf5`)
   - follow the steps from [this repository](https://github.com/xsmida03/nasbench) to install nas-bench-101 api 
 
 ## Getting Started
 1. Clone the repository: `git clone https://github.com/xsmida03/BP-Accuracy-Predictors.git`
-2. Create virtual environment 
-3. Make sure you have installed necessary dependencies (above)
-4. Install necessary packages: `pip install -r requirements.txt`
-5. Recommended: review or run jupyter notebook (`analysis.ipynb`, `correlation_analysis.ipynb`, `hyperparameter_tuning.ipynb`)
+2. Go to the main directory: `cd BP-Accuracy-Predictors`
+3. Create virtual environment: `virtualenv venv`
+4. Activate the environment: 
+  - `./venv/Scripts/activate` (Windows)
+  - `source ./venv/bin/activate` (Linux)
+6. Make sure you have installed necessary dependencies (above)
+7. Install necessary packages: `pip install -r requirements.txt`
+8. Recommended: review the jupyter notebooks (`analysis.ipynb`, `correlation_analysis.ipynb`, `hyperparameter_tuning.ipynb`)
 
 ## Example training
 - `XGBPredictor` training (on 172 NAS-Bench-101 architectures) and applying to predict accuracies of the whole dataset
