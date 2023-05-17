@@ -15,7 +15,7 @@ To utilize the NAS-Bench-101 API, it is advised to clone the up-to-date (as of M
 
 To convert between the tfrecord and hdf5 file formats yourself, you can utilize the [`tfrecord_to_hdf5.py`](https://github.com/xsmida03/BP-Accuracy-Predictors/blob/main/tfrecord_to_hdf5.py) script provided.
 
-## Dependencies{#dependencies}
+## Dependencies
 - `PyTorch` - follow [official guide](https://pytorch.org/get-started/locally/) according to your system
   - not included in `requirements.txt`
 - `NAS-Bench-101` - only if you want to run `tfrecord_to_hdf5.py` (convert `tfrecord` to `hdf5`)
@@ -24,9 +24,32 @@ To convert between the tfrecord and hdf5 file formats yourself, you can utilize 
 ## Getting Started
 1. Clone the repository: `git clone https://github.com/xsmida03/BP-Accuracy-Predictors.git`
 2. Create virtual environment 
-3. Make sure you have installed necessary [dependencies](#dependencies)
+3. Make sure you have installed necessary dependencies (above)
 4. Install necessary packages: `pip install -r requirements.txt`
+5. Recommended: review or run jupyter notebook (`analysis.ipynb`, `correlation_analysis.ipynb`, `hyperparameter_tuning.ipynb`)
 
+## Example
+```python
+from dataset import NASBench101Dataset
+from utils import get_targets, get_gcn_features 
+from predictors.gcn import GCNPredictor
+
+# Load NAS-Bench-101 dataset (172 training samples)
+dataset = NASBench101Dataset('data/nasbench101.hdf5', "172") 
+dataset_all = NASBench101Dataset('data/nasbench101.hdf5', "all")
+
+# Get the features
+features_gcn = np.array(list([a for a in dataset]))
+all_features_gcn = np.array(list([a for a in dataset_all]))
+train_targets = get_targets(dataset)
+
+# GCN predictor
+gcn_predictor = GCNPredictor()
+# Training
+gcn_predictor.fit(features_gcn, train_targets)
+# Prediction
+gcn_predictor.predict(all_features_gcn)
+```
 
 ## Awards
 **[Excel@fit](https://excel.fit.vutbr.cz/)**: Awarded by an [expert panel](https://excel.fit.vutbr.cz/vysledky/#oceneni-odbornym-panelem) (see [paper](https://excel.fit.vutbr.cz/submissions/2023/082/82.pdf) and [poster](https://excel.fit.vutbr.cz/submissions/2023/082/82_poster.pdf) for more information)
