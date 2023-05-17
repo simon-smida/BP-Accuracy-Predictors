@@ -11,7 +11,7 @@ The chosen dataset for trained CNN architectures and their corresponding metrics
 
 To utilize the NAS-Bench-101 API, it is advised to clone the up-to-date (as of May 10, 2023) NAS-Bench-101 repository from [here](https://github.com/xsmida03/nasbench). In the scope of this project, the NAS-Bench-101 API is only required for converting the official `nasbench_full.tfrecord` file to a faster `hdf5` file format.
 - official `tfrecord` file (slow): https://storage.googleapis.com/nasbench/nasbench_full.tfrecord
-- `hdf5` file (fast): TODO
+- `hdf5` file (fast): https://drive.google.com/file/d/1NmyFqfSyaZ2UNoLshlpy8S4um3dx8Z17/view?usp=share_link
 
 To convert between the tfrecord and hdf5 file formats yourself, you can utilize the [`tfrecord_to_hdf5.py`](https://github.com/xsmida03/BP-Accuracy-Predictors/blob/main/tfrecord_to_hdf5.py) script provided.
 
